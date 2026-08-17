@@ -1,0 +1,62 @@
+// Типы данных (ENUM)
+Enum request_type {
+  material
+  work
+  status_update
+}
+
+Enum request_status {
+  new
+  in_progress
+  done
+  rejected
+  cancelled
+}
+
+Enum user_role {
+  foreman
+  owner
+}
+
+// Таблица пользователей
+Table users {
+  id bigserial [primary key]
+  username text [not null, unique]
+  password_hash text [not null]
+  role user_role [not null, default: `foreman`]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+// Таблица заявок
+Table requests {
+  id bigserial [primary key]
+  object text [not null]
+  type request_type [not null]
+  title text [not null]
+  description text
+  status request_status [not null, default: `new`]
+  created_by bigint [not null, ref: > users.id]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  Indexes {
+    status
+    object
+  }
+}
+
+// Таблица истории статусов
+Table request_status_history {
+  id bigserial [primary key]
+  request_id bigint [not null, ref: > requests.id]
+  old_status request_status [not null]
+  new_status request_status [not null]
+  changed_by bigint [not null, ref: > users.id]
+  comment text
+  changed_at timestamptz [not null, default: `now()`]
+
+  Indexes {
+    request_id
+  }
+}
+
